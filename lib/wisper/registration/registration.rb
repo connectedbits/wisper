@@ -11,6 +11,23 @@ module Wisper
       @on       = stringify(options.fetch(:on, ALL))
     end
 
+    # Global listeners + rails in dev mode causes exception
+    # Thanks to gersmann for the workaround
+    def listener
+      @listener.new if @listener.class == Class
+      case @listener
+        when Class
+          clazz = Kernel.const_get(@listener.to_s)
+          clazz.new
+        when String
+          clazz = Kernel.const_get(@listener)
+          clazz.new
+        else
+          @listener
+        end
+      end
+    end
+
     private
 
     def should_broadcast?(event)
